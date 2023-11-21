@@ -3,9 +3,8 @@ import pandas as pd
 import datetime
 
 
-
 @check_data_exists
-def user_table_cleaning(filename, dataframe:pd.core.frame.DataFrame):
+def user_table_cleaning(filename, dataframe: pd.core.frame.DataFrame):
     """
     :param filename: gets filepath of rawdata, required for @check_data_exists decorator, it checks if file exists or
                         has data in it
@@ -19,19 +18,18 @@ def user_table_cleaning(filename, dataframe:pd.core.frame.DataFrame):
      ##TODO
      1. add identificator column as ID, it should be Unique record
      2. convert Epoch datetype to HUMAN Date type ( "human" means date like '11/19/2023' and not 1700407252 )
-     3. check if all of the column data has same datatype , age must be int, etc.
-     4. store clean data in new dataframe and return
+     3. store clean data in new dataframe and return
     """
 
     # Copies dataframe to temporary dataframe
-    clean_dataset:pd.core.frame.DataFrame = dataframe.copy()
+    clean_dataset: pd.core.frame.DataFrame = dataframe.copy()
 
     # ADDS NEW ROW 'ID' with row index values
-    clean_dataset.insert(0, 'ID', clean_dataset.index)
-    # ADDS NEW ROW 'INP_SYSDATE' with date values, used to convert Epoch datetime to sysdate
+    clean_dataset.insert(0, 'ID', clean_dataset.index + 1)
+    # ADDS NEW ROW 'INP_SYSDATE' with date values, used for convert Epoch datetime to sysdate
     clean_dataset['INP_SYSDATE'] = None
 
-    # WORKS FOR EACH RECORD
+    # WORKS LIKE GENERATOR FOR EACH RECORD
     for i in clean_dataset['ID']:
         # Gets 'Subscription Date' value
 
@@ -50,10 +48,101 @@ def user_table_cleaning(filename, dataframe:pd.core.frame.DataFrame):
     return clean_dataset
 
 
-# print(user_table_cleaning('../RawData/user_table.csv', pd.read_csv('../RawData/user_table.csv')))
+@check_data_exists
+def reaction_table_cleaning(filename, dataframe: pd.core.frame.DataFrame):
+    """
+    same description as user_table_cleaning
+    :param filename: file
+    :param dataframe: raw dataframe
+    :return: clean dataframe
+    ##TODO
+    1. add unique id for record
+    2. delete junk data, as we see user_table is connected to reactions_table,
+    we have 1000 users but table has >1000 user_id records, which is not relevant for our table link and has no uses.
+    3. add new column inp_sysdate where Epoch timestamp will be converted to date.
+    4. store clean data in new dataframe and return
+
+    """
+
+    clean_dataset: pd.core.frame.DataFrame = dataframe.copy()
+
+    # Removes junk data, where userid > 1000
+    filtered_data = clean_dataset[clean_dataset['User'] <= 1000]
+
+    # ADDS NEW ROW 'ID' with row index values
+    filtered_data.insert(0, 'ID', filtered_data.reset_index().index + 1)
+    # ADDS NEW ROW 'INP_SYSDATE' with date values, used for convert Epoch datetime to sysdate
+    filtered_data.insert(4, 'INP_SYSDATE', None)
+
+    # WORKS LIKE GENERATOR FOR EACH RECORD
+    for i in filtered_data['ID']:
+        # GETS Epoch number
+        selected_data = filtered_data.loc[filtered_data['ID'] == i]['Reaction Date'].values[0]
+
+        # Converts Epoch number to date
+        date = datetime.datetime.fromtimestamp(selected_data).strftime('%Y-%m-%d %H:%M:%S')
+
+        # assigns value to INP_SYSDATE column
+        filtered_data.loc[filtered_data['ID'] == i, 'INP_SYSDATE'] = date
+
+    return filtered_data
+
+@check_data_exists
+def posts_table_cleaning(filename, dataframe: pd.core.frame.DataFrame):
+    """
+    same description as user_table_cleaning
+    :param filename: file
+    :param dataframe: raw dataframe
+    :return: clean dataframe
+
+    #TODO
+    1. add unique id for record
+    2. add new column inp_sysdate where Epoch timestamp will be converted to date.
+    3. store clean data in new dataframe and return
+    """
+
+    # Copies dataframe to temporary dataframe
+    new_dataset: pd.core.frame.DataFrame = dataframe.copy()
+
+    # ADDS NEW ROW 'ID' with row index values
+    new_dataset.insert(0, 'ID', new_dataset.index + 1)
+    # ADDS NEW ROW 'INP_SYSDATE' with date values, used for convert Epoch datetime to sysdate
+    new_dataset['INP_SYSDATE'] = None
+
+    for i in new_dataset['ID']:
+        # GETS Epoch number
+        selected_data = new_dataset.loc[new_dataset['ID'] == i, 'Post Date'].values[0]
+
+        # Converts Epoch number to date
+        date = datetime.datetime.fromtimestamp(selected_data).strftime('%Y-%m-%d %H:%M:%S')
+
+        # assigns value to INP_SYSDATE column
+        new_dataset.loc[new_dataset['ID'] == i, 'INP_SYSDATE'] = date
+
+    return new_dataset
 
 
-def store_user_table(destination, dataframe:pd.core.frame.DataFrame):
+@check_data_exists
+def friends_table_cleaning(filename, dataframe: pd.core.frame.DataFrame):
+    """
+    same description as user_table_cleaning
+    :param filename: file
+    :param dataframe: raw dataframe
+    :return: clean dataframe
+
+    #TODO
+    1. add unique id for record
+    """
+
+    # Copies dataframe to temporary dataframe
+    new_dataset: pd.core.frame.DataFrame = dataframe.copy()
+
+    # ADDS NEW ROW 'ID' with row index values
+    new_dataset.insert(0, 'ID', new_dataset.index + 1)
+
+
+    return new_dataset
+def store_data(destination, dataframe: pd.core.frame.DataFrame):
     """
 
     :param destination: new file destination, where the data gets stored
@@ -69,4 +158,3 @@ def store_user_table(destination, dataframe:pd.core.frame.DataFrame):
 
     # dataframe.to_csv(destination, index=False) does its job, so i'm returning status of decorator
     return check_if_data_stored(destination)
-
