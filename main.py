@@ -1,6 +1,8 @@
 from Utils.Process.process import (get_top_name,
                                    get_top_contributors,
                                    multiprocess)
+
+from Utils.Backup.backup import disaster_recovery
 import time
 
 
@@ -17,7 +19,9 @@ def main():
 
     print('Top 10 the most common name on the social network \n', common_names)
     print('Top 10 contributors on the social network ID/Quantity \n', top_contributors)
-
+    
+    # Disaster Recovery
+    disaster_recovery()
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Program execution time: {elapsed_time} seconds")
