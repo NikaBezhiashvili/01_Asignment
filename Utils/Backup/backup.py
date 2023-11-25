@@ -15,6 +15,5 @@ def backup_data(source_dir, dest_dir):
 
 
 def disaster_recovery():
-    # Backup user_table
     backup_data('Utils/Cleaning/', 'Utils/Backup/')
 
